@@ -86,11 +86,11 @@ Use the language selector to switch between English, Dutch, German, and French. 
 
 Image modes:
 
-- **Hatched fill** draws scan lines through the selected dark pixels. Fill spacing controls the distance between scan lines.
+- **Hatched fill** draws scan lines through the selected image regions. Fill spacing controls the distance between scan lines. The shading-level control maps pixel brightness to different lane densities: darker regions get more lines, and lighter regions get fewer.
 - **Contours only** traces the boundaries of the selected dark regions.
 - **Trace outline after fill** adds those contours after the hatch fill, useful for emphasizing logos and other shapes. This option is disabled in contours-only mode.
 
-Sampling resolution controls image detail and processing time; a higher value can produce a larger, slower-to-generate path. The default is 768 pixels, fill spacing is 1 pixel, brightness threshold is 110, and minimum component size is 20 pixels. These are starting points, not universal image settings: adjust them for each image. Text uses the SandSkrit stroke glyphs rather than a system font. When image and text are both used, text is placed below the image.
+Sampling resolution controls image detail and processing time; a higher value can produce a larger, slower-to-generate path. The defaults are 768-pixel sampling, 1-pixel fill spacing, a brightness threshold of 245, 5 shading levels, and a 20-pixel minimum component size. These are starting points, not universal image settings: adjust them for each image. The fill encodes brightness as grayscale line density, not color; lower shading levels create fewer, more distinct tones, while higher levels can show smoother tone changes. Lower the brightness threshold to exclude lighter areas. Text uses the SandSkrit stroke glyphs rather than a system font. When image and text are both used, text is placed below the image.
 
 The sand table follows one continuous path. Connecting moves between separate strokes are therefore part of the output and may be visible. The router favors paths near the edges of dark shapes, but cannot guarantee that every connection avoids both the shapes and open areas. High-contrast, relatively simple images generally give the clearest results.
 

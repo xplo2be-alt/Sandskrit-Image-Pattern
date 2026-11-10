@@ -126,11 +126,15 @@
       <input id="textSize" type="range" min="8" max="40" value="20">
       <p class="hint" data-i18n="textHint">Text uses SandSkrit stroke glyphs, not filled block letters. Text is placed below the image; without an image, only text is drawn.</p>
 
-      <label for="threshold"><span data-i18n="darkThreshold">Maximum brightness to count as dark</span>: <output id="thresholdValue">110</output></label>
-      <input id="threshold" type="range" min="8" max="180" value="110">
+      <label for="threshold"><span data-i18n="darkThreshold">Maximum brightness used for shading</span>: <output id="thresholdValue">245</output></label>
+      <input id="threshold" type="range" min="8" max="255" value="245">
 
       <label for="minPixels"><span data-i18n="minSpotSize">Minimum dark spot size (pixels)</span>: <output id="minPixelsValue">20</output></label>
       <input id="minPixels" type="range" min="1" max="40" value="20">
+
+      <label for="toneLevels"><span data-i18n="toneLevels">Shading levels</span>: <output id="toneLevelsValue">5</output></label>
+      <input id="toneLevels" type="range" min="2" max="8" value="5">
+      <p class="hint" data-i18n="toneHint">Brighter image areas use fewer hatch lanes and darker areas use more. This adds grayscale detail to the path; the sand drawing itself is not colored.</p>
 
       <label for="imageMode" data-i18n="drawImageAs">Draw image as</label>
       <select id="imageMode">
@@ -184,8 +188,10 @@
         textPlaceholder: "For example: Hello!",
         textSize: "Text size",
         textHint: "Text uses SandSkrit stroke glyphs, not filled block letters. Text is placed below the image; without an image, only text is drawn.",
-        darkThreshold: "Maximum brightness to count as dark",
+        darkThreshold: "Maximum brightness used for shading",
         minSpotSize: "Minimum dark spot size (pixels)",
+        toneLevels: "Shading levels",
+        toneHint: "Brighter image areas use fewer hatch lanes and darker areas use more. This adds grayscale detail to the path; the sand drawing itself is not colored.",
         drawImageAs: "Draw image as",
         hatchedFill: "Hatched fill",
         contoursOnly: "Contours only",
@@ -227,8 +233,10 @@
         textPlaceholder: "Bijvoorbeeld: Hallo!",
         textSize: "Tekstgrootte",
         textHint: "Tekst gebruikt SandSkrit-letterpaden, geen gevulde blokletters. Tekst komt onder de afbeelding; zonder afbeelding wordt alleen tekst getekend.",
-        darkThreshold: "Maximale helderheid voor donker",
+        darkThreshold: "Maximale helderheid voor arcering",
         minSpotSize: "Kleinste donkere vlek (pixels)",
+        toneLevels: "Schaduwniveaus",
+        toneHint: "Lichtere delen krijgen minder arceerlijnen en donkere delen meer. Dit voegt grijswaardedetail toe aan het pad; de zandtekening zelf krijgt geen kleur.",
         drawImageAs: "Afbeelding tekenen als",
         hatchedFill: "Opvulling met lijnen",
         contoursOnly: "Alleen contouren",
@@ -270,8 +278,10 @@
         textPlaceholder: "Zum Beispiel: Hallo!",
         textSize: "Textgröße",
         textHint: "Text verwendet SandSkrit-Strichglyphen statt ausgefüllter Blockbuchstaben. Text steht unter dem Bild; ohne Bild wird nur Text gezeichnet.",
-        darkThreshold: "Maximale Helligkeit für dunkle Pixel",
+        darkThreshold: "Maximale Helligkeit für die Schattierung",
         minSpotSize: "Mindestgröße dunkler Flecken (Pixel)",
+        toneLevels: "Schattierungsstufen",
+        toneHint: "Hellere Bildbereiche erhalten weniger Schraffurlinien, dunklere mehr. Das fügt dem Pfad Graustufendetails hinzu; die Sandzeichnung selbst ist nicht farbig.",
         drawImageAs: "Bild zeichnen als",
         hatchedFill: "Schraffierte Füllung",
         contoursOnly: "Nur Konturen",
@@ -313,8 +323,10 @@
         textPlaceholder: "Par exemple : Bonjour !",
         textSize: "Taille du texte",
         textHint: "Le texte utilise les tracés de caractères SandSkrit, et non des lettres pleines. Il est placé sous l’image ; sans image, seul le texte est tracé.",
-        darkThreshold: "Luminosité maximale des pixels sombres",
+        darkThreshold: "Luminosité maximale utilisée pour les nuances",
         minSpotSize: "Taille minimale des taches sombres (pixels)",
+        toneLevels: "Niveaux de nuances",
+        toneHint: "Les zones claires utilisent moins de lignes hachurées et les zones foncées davantage. Cela ajoute des détails en niveaux de gris au tracé ; le dessin dans le sable n’est pas en couleur.",
         drawImageAs: "Tracer l’image en",
         hatchedFill: "Remplissage hachuré",
         contoursOnly: "Contours uniquement",
@@ -375,6 +387,7 @@
       textSizeValue.value = `${textSizeInput.value}%`;
       thresholdValue.value = formatNumber(Number(thresholdInput.value));
       minPixelsValue.value = formatNumber(Number(minPixelsInput.value));
+      toneLevelsValue.value = formatNumber(Number(toneLevelsInput.value));
       fillSpacingValue.value = formatNumber(Number(fillSpacingInput.value));
       showStatus(currentStatus.key, currentStatus.values);
     }
@@ -398,6 +411,42 @@
       return error;
     }
 
+    function makeToneFillSegments(pixels, mask, width, height, spacing, threshold, toneLevels) {
+      const segments = [];
+      for (let y = 0; y < height; y += spacing) {
+        const lane = Math.floor(y / spacing);
+        for (let x = 0; x < width;) {
+          while (x < width && mask[y * width + x] === 0) x++;
+          if (x >= width) break;
+
+          const start = x;
+          const pixel = (y * width + x) * 4;
+          const brightness = 0.299 * pixels[pixel] +
+            0.587 * pixels[pixel + 1] + 0.114 * pixels[pixel + 2];
+          const tone = Math.max(1, Math.min(
+            toneLevels,
+            Math.ceil((threshold - brightness) / threshold * toneLevels)
+          ));
+          x++;
+          while (x < width && mask[y * width + x] === 1) {
+            const nextPixel = (y * width + x) * 4;
+            const nextBrightness = 0.299 * pixels[nextPixel] +
+              0.587 * pixels[nextPixel + 1] + 0.114 * pixels[nextPixel + 2];
+            const nextTone = Math.max(1, Math.min(
+              toneLevels,
+              Math.ceil((threshold - nextBrightness) / threshold * toneLevels)
+            ));
+            if (nextTone !== tone) break;
+            x++;
+          }
+          const end = x - 1;
+          const phase = (lane + Math.floor((start + end) / (2 * spacing))) % toneLevels;
+          if (phase < tone) segments.push([[start, y], [end, y]]);
+        }
+      }
+      return segments;
+    }
+
     const savedLanguage = localStorage.getItem("sandskrit-language");
     if (supportedLanguages.includes(savedLanguage)) languageInput.value = savedLanguage;
 
@@ -409,6 +458,8 @@
     const thresholdValue = document.getElementById("thresholdValue");
     const minPixelsInput = document.getElementById("minPixels");
     const minPixelsValue = document.getElementById("minPixelsValue");
+    const toneLevelsInput = document.getElementById("toneLevels");
+    const toneLevelsValue = document.getElementById("toneLevelsValue");
     const imageModeInput = document.getElementById("imageMode");
     const fillSpacingInput = document.getElementById("fillSpacing");
     const fillSpacingValue = document.getElementById("fillSpacingValue");
@@ -834,14 +885,16 @@
           imageSegments.push(...makeContourSegments(mask, sample.width, sample.height));
         } else {
           const spacing = Number(fillSpacingInput.value);
-          for (let y = 0; y < sample.height; y += spacing) {
-            for (let x = 0; x < sample.width;) {
-              while (x < sample.width && mask[y * sample.width + x] === 0) x++;
-              const start = x;
-              while (x < sample.width && mask[y * sample.width + x] === 1) x++;
-              if (x > start) imageSegments.push([[start, y], [x - 1, y]]);
-            }
-          }
+          const fillSegments = makeToneFillSegments(
+            pixels,
+            mask,
+            sample.width,
+            sample.height,
+            spacing,
+            threshold,
+            Number(toneLevelsInput.value)
+          );
+          for (const segment of fillSegments) imageSegments.push(segment);
           imageSegments.splice(0, imageSegments.length, ...orderFillSegments(imageSegments, sample.width, sample.height));
           if (outlineAfterFillInput.checked && imageSegments.length) {
             const lastSegment = imageSegments[imageSegments.length - 1];
@@ -921,7 +974,8 @@
         throw localizedError("tooFewPixels");
       }
 
-      const farthest = Math.max(...rawPoints.map(([x, y]) => Math.hypot(x, y)));
+      let farthest = 0;
+      for (const [x, y] of rawPoints) farthest = Math.max(farthest, Math.hypot(x, y));
       const factor = farthest === 0 ? 1 : radius / farthest;
       return rawPoints.map(([x, y]) => [x * factor, y * factor]);
     }
@@ -1041,9 +1095,14 @@
     resolutionInput.addEventListener("change", updatePattern);
     imageModeInput.addEventListener("change", () => {
       outlineAfterFillInput.disabled = imageModeInput.value === "contour";
+      toneLevelsInput.disabled = imageModeInput.value === "contour";
       updatePattern();
     });
     outlineAfterFillInput.addEventListener("change", updatePattern);
+    toneLevelsInput.addEventListener("input", () => {
+      toneLevelsValue.value = formatNumber(Number(toneLevelsInput.value));
+      updatePattern();
+    });
     fillSpacingInput.addEventListener("input", () => {
       fillSpacingValue.value = fillSpacingInput.value;
       updatePattern();
