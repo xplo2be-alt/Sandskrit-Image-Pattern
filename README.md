@@ -1,12 +1,6 @@
-# SandSkrit
+# SandSkrit image Pattern
 
 An image and text to sand-table pattern GUI and Python library, based on SandSkrit by UnintelligibleMaker. Converts designs into continuous SVG and THR paths; released under the MIT License.
-
-
-![SandSkritIntro](images/SandSkritIntro.jpg)
-Note: My sand is a little piled up near the center of the table still in this photo.  
-
-![SandSkritCharacters](images/SandSkritCharacters.jpg)
 
 
 
