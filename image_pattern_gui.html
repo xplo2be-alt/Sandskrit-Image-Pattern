@@ -800,14 +800,17 @@
           const nextY = Math.floor(next / gridWidth);
           const isInsideImage = nextX > 0 && nextX < gridWidth - 1 &&
             nextY > 0 && nextY < gridHeight - 1;
-          let stepCost = 32;
+          let stepCost = 1000;
           if (isInsideImage) {
             const imageIndex = (nextY - 1) * width + nextX - 1;
             if (mask[imageIndex]) {
-              stepCost = 60;
+              stepCost = 1;
             } else {
               const distance = Math.max(0, distanceToDark[imageIndex] - 1);
-              stepCost = 1 + Math.min(7, distance) ** 2;
+              if (distance <= 0.5) stepCost = 4;
+              else if (distance <= 1.5) stepCost = 24;
+              else if (distance <= 3) stepCost = 120;
+              else stepCost = 600 + distance * 20;
             }
           }
           const candidateDistance = distances[current] + stepCost;
