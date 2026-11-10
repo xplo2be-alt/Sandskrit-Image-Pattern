@@ -136,6 +136,13 @@
       <input id="toneLevels" type="range" min="2" max="8" value="5">
       <p class="hint" data-i18n="toneHint">Brighter image areas use fewer hatch lanes and darker areas use more. This adds grayscale detail to the path; the sand drawing itself is not colored.</p>
 
+      <label for="fillStyle" data-i18n="fillStyle">Fill style</label>
+      <select id="fillStyle">
+        <option value="sections" selected data-i18n="sectionDirections">Vary direction by section</option>
+        <option value="horizontal" data-i18n="horizontalShading">Horizontal shading</option>
+        <option value="contours" data-i18n="followContours">Follow brightness contours</option>
+      </select>
+
       <label for="imageMode" data-i18n="drawImageAs">Draw image as</label>
       <select id="imageMode">
         <option value="fill" selected data-i18n="hatchedFill">Hatched fill</option>
@@ -192,6 +199,10 @@
         minSpotSize: "Minimum dark spot size (pixels)",
         toneLevels: "Shading levels",
         toneHint: "Brighter image areas use fewer hatch lanes and darker areas use more. This adds grayscale detail to the path; the sand drawing itself is not colored.",
+        fillStyle: "Fill style",
+        sectionDirections: "Vary direction by section",
+        horizontalShading: "Horizontal shading",
+        followContours: "Follow brightness contours",
         drawImageAs: "Draw image as",
         hatchedFill: "Hatched fill",
         contoursOnly: "Contours only",
@@ -237,6 +248,10 @@
         minSpotSize: "Kleinste donkere vlek (pixels)",
         toneLevels: "Schaduwniveaus",
         toneHint: "Lichtere delen krijgen minder arceerlijnen en donkere delen meer. Dit voegt grijswaardedetail toe aan het pad; de zandtekening zelf krijgt geen kleur.",
+        fillStyle: "Vulstijl",
+        sectionDirections: "Richting per deel afwisselen",
+        horizontalShading: "Horizontale arcering",
+        followContours: "Helderheidscontouren volgen",
         drawImageAs: "Afbeelding tekenen als",
         hatchedFill: "Opvulling met lijnen",
         contoursOnly: "Alleen contouren",
@@ -282,6 +297,10 @@
         minSpotSize: "Mindestgröße dunkler Flecken (Pixel)",
         toneLevels: "Schattierungsstufen",
         toneHint: "Hellere Bildbereiche erhalten weniger Schraffurlinien, dunklere mehr. Das fügt dem Pfad Graustufendetails hinzu; die Sandzeichnung selbst ist nicht farbig.",
+        fillStyle: "Füllstil",
+        sectionDirections: "Richtung je Bildbereich variieren",
+        horizontalShading: "Horizontale Schraffur",
+        followContours: "Helligkeitskonturen folgen",
         drawImageAs: "Bild zeichnen als",
         hatchedFill: "Schraffierte Füllung",
         contoursOnly: "Nur Konturen",
@@ -327,6 +346,10 @@
         minSpotSize: "Taille minimale des taches sombres (pixels)",
         toneLevels: "Niveaux de nuances",
         toneHint: "Les zones claires utilisent moins de lignes hachurées et les zones foncées davantage. Cela ajoute des détails en niveaux de gris au tracé ; le dessin dans le sable n’est pas en couleur.",
+        fillStyle: "Style de remplissage",
+        sectionDirections: "Varier l’orientation par zone",
+        horizontalShading: "Hachures horizontales",
+        followContours: "Suivre les contours de luminosité",
         drawImageAs: "Tracer l’image en",
         hatchedFill: "Remplissage hachuré",
         contoursOnly: "Contours uniquement",
@@ -411,6 +434,16 @@
       return error;
     }
 
+    function toneAtPixel(pixels, index, threshold, toneLevels) {
+      const pixel = index * 4;
+      const brightness = 0.299 * pixels[pixel] +
+        0.587 * pixels[pixel + 1] + 0.114 * pixels[pixel + 2];
+      return Math.max(1, Math.min(
+        toneLevels,
+        Math.ceil((threshold - brightness) / threshold * toneLevels)
+      ));
+    }
+
     function makeToneFillSegments(pixels, mask, width, height, spacing, threshold, toneLevels) {
       const segments = [];
       for (let y = 0; y < height; y += spacing) {
@@ -420,28 +453,107 @@
           if (x >= width) break;
 
           const start = x;
-          const pixel = (y * width + x) * 4;
-          const brightness = 0.299 * pixels[pixel] +
-            0.587 * pixels[pixel + 1] + 0.114 * pixels[pixel + 2];
-          const tone = Math.max(1, Math.min(
-            toneLevels,
-            Math.ceil((threshold - brightness) / threshold * toneLevels)
-          ));
+          const tone = toneAtPixel(pixels, y * width + x, threshold, toneLevels);
           x++;
           while (x < width && mask[y * width + x] === 1) {
-            const nextPixel = (y * width + x) * 4;
-            const nextBrightness = 0.299 * pixels[nextPixel] +
-              0.587 * pixels[nextPixel + 1] + 0.114 * pixels[nextPixel + 2];
-            const nextTone = Math.max(1, Math.min(
-              toneLevels,
-              Math.ceil((threshold - nextBrightness) / threshold * toneLevels)
-            ));
+            const nextTone = toneAtPixel(pixels, y * width + x, threshold, toneLevels);
             if (nextTone !== tone) break;
             x++;
           }
           const end = x - 1;
           const phase = (lane + Math.floor((start + end) / (2 * spacing))) % toneLevels;
           if (phase < tone) segments.push([[start, y], [end, y]]);
+        }
+      }
+      return segments;
+    }
+
+    function makeDirectionalToneSegments(
+      pixels, mask, width, height, bounds, spacing, threshold, toneLevels, angle
+    ) {
+      const [left, top, right, bottom] = bounds;
+      const centerX = (left + right) / 2;
+      const centerY = (top + bottom) / 2;
+      const tangentX = Math.cos(angle);
+      const tangentY = Math.sin(angle);
+      const normalX = -tangentY;
+      const normalY = tangentX;
+      let maxOffset = 0;
+      let maxAlong = 0;
+      for (const [x, y] of [[left, top], [right, top], [left, bottom], [right, bottom]]) {
+        const dx = x - centerX;
+        const dy = y - centerY;
+        maxOffset = Math.max(maxOffset, Math.abs(dx * normalX + dy * normalY));
+        maxAlong = Math.max(maxAlong, Math.abs(dx * tangentX + dy * tangentY));
+      }
+
+      const segments = [];
+      let lane = 0;
+      for (let offset = -maxOffset; offset <= maxOffset; offset += spacing, lane++) {
+        let segment = [];
+        const phase = lane % toneLevels;
+        for (let along = -maxAlong; along <= maxAlong; along += 1) {
+          const x = Math.round(centerX + normalX * offset + tangentX * along);
+          const y = Math.round(centerY + normalY * offset + tangentY * along);
+          if (x < left || x > right || y < top || y > bottom) {
+            if (segment.length) segments.push(segment);
+            segment = [];
+            continue;
+          }
+          const index = y * width + x;
+          const tone = mask[index] ? toneAtPixel(pixels, index, threshold, toneLevels) : 0;
+          if (!tone || phase >= tone) {
+            if (segment.length) segments.push(segment);
+            segment = [];
+            continue;
+          }
+          if (!segment.length || segment[segment.length - 1][0] !== x ||
+            segment[segment.length - 1][1] !== y) {
+            segment.push([x, y]);
+          }
+        }
+        if (segment.length) segments.push(segment);
+      }
+      return segments.filter(segment => segment.length >= 2);
+    }
+
+    function makeSectionToneFillSegments(pixels, mask, width, height, spacing, threshold, toneLevels) {
+      const segments = [];
+      const sectionSize = 128;
+      const directions = [0, Math.PI / 4, -Math.PI / 4, Math.PI / 2];
+      for (let top = 0, row = 0; top < height; top += sectionSize, row++) {
+        for (let left = 0, column = 0; left < width; left += sectionSize, column++) {
+          const directionIndex = (column * 3 + row * 5 + (column * row) % directions.length) %
+            directions.length;
+          const sectionSegments = makeDirectionalToneSegments(
+            pixels,
+            mask,
+            width,
+            height,
+            [left, top, Math.min(width - 1, left + sectionSize - 1),
+              Math.min(height - 1, top + sectionSize - 1)],
+            spacing,
+            threshold,
+            toneLevels,
+            directions[directionIndex]
+          );
+          for (const segment of sectionSegments) segments.push(segment);
+        }
+      }
+      return orderFillSegments(segments, width, height);
+    }
+
+    function makeToneContourSegments(pixels, width, height, threshold, toneLevels, minPixels) {
+      const segments = [];
+      let current = [0, 0];
+      for (let level = 1; level <= toneLevels; level++) {
+        const levelThreshold = Math.max(1, Math.round(threshold * level / toneLevels));
+        const mask = makeDarkMask(pixels, width, height, levelThreshold, minPixels);
+        const levelSegments = makeContourSegments(mask, width, height, current);
+        for (const segment of levelSegments) {
+          segments.push(segment);
+          const [x, y] = segment[segment.length - 1];
+          current = [x - (width - 1) / 2, (height - 1) / 2 - y];
         }
       }
       return segments;
@@ -460,6 +572,7 @@
     const minPixelsValue = document.getElementById("minPixelsValue");
     const toneLevelsInput = document.getElementById("toneLevels");
     const toneLevelsValue = document.getElementById("toneLevelsValue");
+    const fillStyleInput = document.getElementById("fillStyle");
     const imageModeInput = document.getElementById("imageMode");
     const fillSpacingInput = document.getElementById("fillSpacing");
     const fillSpacingValue = document.getElementById("fillSpacingValue");
@@ -885,16 +998,20 @@
           imageSegments.push(...makeContourSegments(mask, sample.width, sample.height));
         } else {
           const spacing = Number(fillSpacingInput.value);
-          const fillSegments = makeToneFillSegments(
-            pixels,
-            mask,
-            sample.width,
-            sample.height,
-            spacing,
-            threshold,
-            Number(toneLevelsInput.value)
-          );
-          for (const segment of fillSegments) imageSegments.push(segment);
+          const toneLevels = Number(toneLevelsInput.value);
+          if (fillStyleInput.value === "contours") {
+            imageSegments.push(...makeToneContourSegments(
+              pixels, sample.width, sample.height, threshold, toneLevels, Number(minPixelsInput.value)
+            ));
+          } else if (fillStyleInput.value === "sections") {
+            imageSegments.push(...makeSectionToneFillSegments(
+              pixels, mask, sample.width, sample.height, spacing, threshold, toneLevels
+            ));
+          } else {
+            imageSegments.push(...makeToneFillSegments(
+              pixels, mask, sample.width, sample.height, spacing, threshold, toneLevels
+            ));
+          }
           imageSegments.splice(0, imageSegments.length, ...orderFillSegments(imageSegments, sample.width, sample.height));
           if (outlineAfterFillInput.checked && imageSegments.length) {
             const lastSegment = imageSegments[imageSegments.length - 1];
@@ -1096,6 +1213,13 @@
     imageModeInput.addEventListener("change", () => {
       outlineAfterFillInput.disabled = imageModeInput.value === "contour";
       toneLevelsInput.disabled = imageModeInput.value === "contour";
+      fillStyleInput.disabled = imageModeInput.value === "contour";
+      fillSpacingInput.disabled = imageModeInput.value === "contour" ||
+        fillStyleInput.value === "contours";
+      updatePattern();
+    });
+    fillStyleInput.addEventListener("change", () => {
+      fillSpacingInput.disabled = fillStyleInput.value === "contours";
       updatePattern();
     });
     outlineAfterFillInput.addEventListener("change", updatePattern);
