@@ -73,6 +73,39 @@ sandskrit.add_lines_of_text(multi_lines)
 
 See `Example.py` for a more complex example of how to use the library.
 
+### Browser GUI: image to pattern
+
+The browser GUI runs locally and does not upload images or require Python, a web server, or additional packages.
+
+1. Download or clone this repository.
+2. Keep `image_pattern_gui.html` and `characters_data.js` together in the same folder.
+3. Open `image_pattern_gui.html` in a current desktop browser.
+4. Choose an image, enter optional text, adjust the settings, and download an SVG preview or a THR path.
+
+The GUI is currently labelled in Dutch; the source and this guide are in English. Image processing takes place in the browser. The image is scaled to fit the selected sampling resolution, then pixels darker than the brightness threshold are selected. Small connected dark regions can be removed with the minimum-component-size setting.
+
+Image modes:
+
+- **Hatched fill** draws scan lines through the selected dark pixels. Fill spacing controls the distance between scan lines.
+- **Contours only** traces the boundaries of the selected dark regions.
+- **Trace outline after fill** adds those contours after the hatch fill, useful for emphasizing logos and other shapes. This option is disabled in contours-only mode.
+
+Sampling resolution controls image detail and processing time; a higher value can produce a larger, slower-to-generate path. The default is 768 pixels, fill spacing is 1 pixel, brightness threshold is 110, and minimum component size is 20 pixels. These are starting points, not universal image settings: adjust them for each image. Text uses the SandSkrit stroke glyphs rather than a system font. When image and text are both used, text is placed below the image.
+
+The sand table follows one continuous path. Connecting moves between separate strokes are therefore part of the output and may be visible. The router favors paths near the edges of dark shapes, but cannot guarantee that every connection avoids both the shapes and open areas. High-contrast, relatively simple images generally give the clearest results.
+
+The GUI exports a horizontal-orientation THR file with ten decimal places. Its theta direction is horizontally mirrored to compensate for the orientation reported on the original project setup. THR conventions and table orientation vary between controllers: check your controller's import requirements and test a small file before running a large pattern. The preview and SVG show the readable, unmirrored design.
+
+#### Customizing the GUI
+
+The interface, image-processing logic, and export functions are in `image_pattern_gui.html`. Change the control defaults and ranges in the HTML inputs, or adjust the processing and THR-export behavior in the inline JavaScript. Keep the `characters_data.js` file beside the HTML file; it provides the browser with the glyph data from `characters_data.py`. If you change or add glyphs, update both files so the Python library and browser GUI stay consistent. The GUI has no build step.
+
+To host the GUI as a static site, publish the HTML file and `characters_data.js` together (for example, from the repository root using GitHub Pages). Users can also download the two files and open the HTML locally.
+
+## Credits and licensing
+
+SandSkrit and the original Python library were created by **UnintelligibleMaker**. The project is distributed under the MIT License; see [LICENSE](LICENSE) for the terms and copyright notice. The browser GUI and later changes are part of this repository, and their contributors are recorded in GitHub's commit history. The existing project images are retained with the repository. Do not redistribute other people's images, fonts, or generated example files unless you have permission or their license allows it.
+
 ## API Overview
 
 ### `SandSkrit(x=0, y=0)`
