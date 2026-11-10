@@ -1,6 +1,6 @@
 # SandSkrit
 
-SandSkrit is a Python library for generating continuous paths (polylines) designed for use with sand tables (like Sisyphus). It allows you to create complex patterns by combining lines, spirals, circles, and text, and exports the resulting path to SVG or THR (Theta-Rho) formats.
+An image and text to sand-table pattern GUI and Python library, based on SandSkrit by UnintelligibleMaker. Converts designs into continuous SVG and THR paths; released under the MIT License.
 
 
 ![SandSkritIntro](images/SandSkritIntro.jpg)
