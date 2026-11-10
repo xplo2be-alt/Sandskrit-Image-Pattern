@@ -82,7 +82,7 @@ The browser GUI runs locally and does not upload images or require Python, a web
 3. Open `image_pattern_gui.html` in a current desktop browser.
 4. Choose an image, enter optional text, adjust the settings, and download an SVG preview or a THR path.
 
-The GUI is currently labelled in Dutch; the source and this guide are in English. Image processing takes place in the browser. The image is scaled to fit the selected sampling resolution, then pixels darker than the brightness threshold are selected. Small connected dark regions can be removed with the minimum-component-size setting.
+Use the language selector to switch between English, Dutch, German, and French. The selection is saved in the browser and restored the next time the GUI is opened. Image processing takes place in the browser. The image is scaled to fit the selected sampling resolution, then pixels darker than the brightness threshold are selected. Small connected dark regions can be removed with the minimum-component-size setting.
 
 Image modes:
 
@@ -98,7 +98,7 @@ The GUI exports a horizontal-orientation THR file with ten decimal places. Its t
 
 #### Customizing the GUI
 
-The interface, image-processing logic, and export functions are in `image_pattern_gui.html`. Change the control defaults and ranges in the HTML inputs, or adjust the processing and THR-export behavior in the inline JavaScript. Keep the `characters_data.js` file beside the HTML file; it provides the browser with the glyph data from `characters_data.py`. If you change or add glyphs, update both files so the Python library and browser GUI stay consistent. The GUI has no build step.
+The interface, image-processing logic, translations, and export functions are in `image_pattern_gui.html`. Change the control defaults and ranges in the HTML inputs, adjust the processing and THR-export behavior in the inline JavaScript, or add another locale to the `messages` and `localeNames` objects and the language selector. Change the control's `data-i18n` key alongside its translation entries so all languages stay in sync. Keep the `characters_data.js` file beside the HTML file; it provides the browser with the glyph data from `characters_data.py`. If you change or add glyphs, update both files so the Python library and browser GUI stay consistent. The GUI has no build step.
 
 To host the GUI as a static site, publish the HTML file and `characters_data.js` together (for example, from the repository root using GitHub Pages). Users can also download the two files and open the HTML locally.
 

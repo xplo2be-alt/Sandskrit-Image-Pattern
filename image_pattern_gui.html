@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="nl">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SandSkrit - afbeelding naar patroon</title>
+  <title>SandSkrit - image to pattern</title>
   <style>
     :root {
       color-scheme: light;
@@ -16,6 +16,11 @@
       max-width: 900px;
       margin: 0 auto;
       padding: 24px;
+    }
+
+    .language-control {
+      max-width: 220px;
+      margin-left: auto;
     }
 
     main {
@@ -97,67 +102,305 @@
   </style>
 </head>
 <body>
-  <h1>Afbeelding naar SandSkrit-patroon</h1>
-  <p class="hint">Kies contouren of een arcering als opvulling. Het pad begint direct op de tekening; verbindingslijnen volgen waar mogelijk de randen van donkere vormen in plaats van open witte delen af te snijden.</p>
+  <div class="language-control">
+    <label for="language" data-i18n="languageLabel">Language</label>
+    <select id="language" aria-label="Language" data-i18n-aria-label="languageLabel">
+      <option value="en">English</option>
+      <option value="nl">Nederlands</option>
+      <option value="de">Deutsch</option>
+      <option value="fr">Français</option>
+    </select>
+  </div>
+  <h1 data-i18n="title">Image to SandSkrit pattern</h1>
+  <p class="hint" data-i18n="intro">Choose contours or a hatched fill. The path starts on the drawing; connecting lines follow dark-shape edges where possible instead of cutting across open white areas.</p>
 
   <main>
-    <section aria-label="Instellingen">
-      <label for="imageFile">Afbeelding kiezen</label>
+    <section aria-label="Settings" data-i18n-aria-label="settings">
+      <label for="imageFile" data-i18n="chooseImage">Choose an image</label>
       <input id="imageFile" type="file" accept="image/*">
 
-      <label for="patternText">Tekst toevoegen (optioneel)</label>
-      <input id="patternText" type="text" maxlength="60" placeholder="Bijvoorbeeld: Hallo!">
+      <label for="patternText" data-i18n="addText">Add text (optional)</label>
+      <input id="patternText" type="text" maxlength="60" data-i18n-placeholder="textPlaceholder" placeholder="For example: Hello!">
 
-      <label for="textSize">Tekstgrootte: <output id="textSizeValue">20%</output></label>
+      <label for="textSize"><span data-i18n="textSize">Text size</span>: <output id="textSizeValue">20%</output></label>
       <input id="textSize" type="range" min="8" max="40" value="20">
-      <p class="hint">Tekst gebruikt de SandSkrit-letterpaden, niet gevulde blokletters. Tekst komt onder de afbeelding; zonder afbeelding wordt alleen tekst getekend.</p>
+      <p class="hint" data-i18n="textHint">Text uses SandSkrit stroke glyphs, not filled block letters. Text is placed below the image; without an image, only text is drawn.</p>
 
-      <label for="threshold">Maximale helderheid voor donker: <output id="thresholdValue">110</output></label>
+      <label for="threshold"><span data-i18n="darkThreshold">Maximum brightness to count as dark</span>: <output id="thresholdValue">110</output></label>
       <input id="threshold" type="range" min="8" max="180" value="110">
 
-      <label for="minPixels">Kleinste donkere vlek (pixels): <output id="minPixelsValue">20</output></label>
+      <label for="minPixels"><span data-i18n="minSpotSize">Minimum dark spot size (pixels)</span>: <output id="minPixelsValue">20</output></label>
       <input id="minPixels" type="range" min="1" max="40" value="20">
 
-      <label for="imageMode">Afbeelding tekenen als</label>
+      <label for="imageMode" data-i18n="drawImageAs">Draw image as</label>
       <select id="imageMode">
-        <option value="fill" selected>Opvulling met lijnen</option>
-        <option value="contour">Alleen contouren</option>
+        <option value="fill" selected data-i18n="hatchedFill">Hatched fill</option>
+        <option value="contour" data-i18n="contoursOnly">Contours only</option>
       </select>
 
-      <label for="fillSpacing">Afstand tussen opvullijnen (pixels): <output id="fillSpacingValue">1</output></label>
+      <label for="fillSpacing"><span data-i18n="fillSpacing">Fill line spacing (pixels)</span>: <output id="fillSpacingValue">1</output></label>
       <input id="fillSpacing" type="range" min="1" max="10" value="1">
 
       <label class="checkbox-label" for="outlineAfterFill">
         <input id="outlineAfterFill" type="checkbox">
-        Contour ook tekenen na de opvulling
+        <span data-i18n="outlineAfterFill">Trace outline after fill</span>
       </label>
 
-      <label for="resolution">Detail</label>
+      <label for="resolution" data-i18n="detail">Detail</label>
       <select id="resolution">
-        <option value="96">Normaal</option>
-        <option value="192">Hoog</option>
-        <option value="384">Zeer hoog</option>
-        <option value="512">Extra fijn</option>
-        <option value="768" selected>Ultrafijn</option>
-        <option value="1024">Maximaal</option>
+        <option value="96" data-i18n="normal">Normal</option>
+        <option value="192" data-i18n="high">High</option>
+        <option value="384" data-i18n="veryHigh">Very high</option>
+        <option value="512" data-i18n="extraFine">Extra fine</option>
+        <option value="768" selected data-i18n="ultraFine">Ultra fine</option>
+        <option value="1024" data-i18n="maximum">Maximum</option>
       </select>
 
-      <label for="radius">Maximale patroonradius</label>
+      <label for="radius" data-i18n="maxRadius">Maximum pattern radius</label>
       <input id="radius" type="number" min="1" max="1000" value="95">
 
-      <button id="svgButton" type="button" disabled>Download SVG</button>
-      <button id="thrButton" type="button" disabled>Download THR</button>
-      <p id="status" role="status" aria-live="polite">Kies een afbeelding om te beginnen.</p>
+      <button id="svgButton" type="button" disabled data-i18n="downloadSvg">Download SVG</button>
+      <button id="thrButton" type="button" disabled data-i18n="downloadThr">Download THR</button>
+      <p id="status" role="status" aria-live="polite" data-i18n="initialStatus">Choose an image to get started.</p>
     </section>
 
-    <section aria-label="Patroonvoorbeeld">
-      <h2>Voorbeeld</h2>
-      <canvas id="preview" width="500" height="500" aria-label="Voorbeeld van het doorlopende patroon"></canvas>
+    <section aria-label="Pattern preview" data-i18n-aria-label="previewSection">
+      <h2 data-i18n="previewTitle">Preview</h2>
+      <canvas id="preview" width="500" height="500" aria-label="Continuous pattern preview" data-i18n-aria-label="previewCanvas"></canvas>
     </section>
   </main>
 
   <script src="characters_data.js"></script>
   <script>
+    const languageInput = document.getElementById("language");
+    const messages = {
+      en: {
+        languageLabel: "Language",
+        title: "Image to SandSkrit pattern",
+        intro: "Choose contours or a hatched fill. The path starts on the drawing; connecting lines follow dark-shape edges where possible instead of cutting across open white areas.",
+        settings: "Settings",
+        chooseImage: "Choose an image",
+        addText: "Add text (optional)",
+        textPlaceholder: "For example: Hello!",
+        textSize: "Text size",
+        textHint: "Text uses SandSkrit stroke glyphs, not filled block letters. Text is placed below the image; without an image, only text is drawn.",
+        darkThreshold: "Maximum brightness to count as dark",
+        minSpotSize: "Minimum dark spot size (pixels)",
+        drawImageAs: "Draw image as",
+        hatchedFill: "Hatched fill",
+        contoursOnly: "Contours only",
+        fillSpacing: "Fill line spacing (pixels)",
+        outlineAfterFill: "Trace outline after fill",
+        detail: "Detail",
+        normal: "Normal",
+        high: "High",
+        veryHigh: "Very high",
+        extraFine: "Extra fine",
+        ultraFine: "Ultra fine",
+        maximum: "Maximum",
+        maxRadius: "Maximum pattern radius",
+        downloadSvg: "Download SVG",
+        downloadThr: "Download THR",
+        initialStatus: "Choose an image to get started.",
+        previewSection: "Pattern preview",
+        previewTitle: "Preview",
+        previewCanvas: "Continuous pattern preview",
+        pointsOnlyStatus: "{points} points in the continuous path.",
+        pointsTracksStatus: "{points} points · {tracks} lanes in the continuous path.",
+        connectionRouteError: "Could not find a connecting route between image strokes.",
+        invalidRadius: "Enter a radius greater than 0.",
+        chooseImageOrText: "Choose an image or enter text.",
+        noDarkShapes: "No clear dark shapes found. Increase the brightness threshold or lower the minimum spot size.",
+        unsupportedCharacter: "The character “{character}” is not supported.",
+        tooFewPixels: "There are too few dark pixels. Lower the darkness threshold or choose a darker image.",
+        invalidImageFile: "Choose a valid image file.",
+        imageOpenError: "The image could not be opened.",
+        unexpectedError: "Could not generate the pattern: {message}"
+      },
+      nl: {
+        languageLabel: "Taal",
+        title: "Afbeelding naar SandSkrit-patroon",
+        intro: "Kies contouren of een arcering als opvulling. Het pad begint op de tekening; verbindingslijnen volgen waar mogelijk de randen van donkere vormen in plaats van open witte delen af te snijden.",
+        settings: "Instellingen",
+        chooseImage: "Afbeelding kiezen",
+        addText: "Tekst toevoegen (optioneel)",
+        textPlaceholder: "Bijvoorbeeld: Hallo!",
+        textSize: "Tekstgrootte",
+        textHint: "Tekst gebruikt SandSkrit-letterpaden, geen gevulde blokletters. Tekst komt onder de afbeelding; zonder afbeelding wordt alleen tekst getekend.",
+        darkThreshold: "Maximale helderheid voor donker",
+        minSpotSize: "Kleinste donkere vlek (pixels)",
+        drawImageAs: "Afbeelding tekenen als",
+        hatchedFill: "Opvulling met lijnen",
+        contoursOnly: "Alleen contouren",
+        fillSpacing: "Afstand tussen opvullijnen (pixels)",
+        outlineAfterFill: "Contour ook tekenen na de opvulling",
+        detail: "Detail",
+        normal: "Normaal",
+        high: "Hoog",
+        veryHigh: "Zeer hoog",
+        extraFine: "Extra fijn",
+        ultraFine: "Ultrafijn",
+        maximum: "Maximaal",
+        maxRadius: "Maximale patroonradius",
+        downloadSvg: "Download SVG",
+        downloadThr: "Download THR",
+        initialStatus: "Kies een afbeelding om te beginnen.",
+        previewSection: "Patroonvoorbeeld",
+        previewTitle: "Voorbeeld",
+        previewCanvas: "Voorbeeld van het doorlopende patroon",
+        pointsOnlyStatus: "{points} punten in het doorlopende pad.",
+        pointsTracksStatus: "{points} punten · {tracks} banen in het doorlopende pad.",
+        connectionRouteError: "Er kon geen verbindingsroute tussen de afbeeldingslijnen worden gevonden.",
+        invalidRadius: "Vul een radius groter dan 0 in.",
+        chooseImageOrText: "Kies een afbeelding of vul tekst in.",
+        noDarkShapes: "Geen duidelijke donkere vormen gevonden. Verhoog de helderheidsdrempel of verlaag de minimale vlekgrootte.",
+        unsupportedCharacter: "Het teken ‘{character}’ wordt niet ondersteund.",
+        tooFewPixels: "Er zijn te weinig donkere pixels. Verlaag de donkerte-drempel of kies een donkerdere afbeelding.",
+        invalidImageFile: "Kies een geldig afbeeldingsbestand.",
+        imageOpenError: "De afbeelding kon niet worden geopend.",
+        unexpectedError: "Het patroon kon niet worden gemaakt: {message}"
+      },
+      de: {
+        languageLabel: "Sprache",
+        title: "Bild zu SandSkrit-Muster",
+        intro: "Wähle Konturen oder eine schraffierte Füllung. Der Pfad beginnt auf der Zeichnung; Verbindungslinien folgen möglichst den Rändern dunkler Formen, statt freie weiße Bereiche zu durchqueren.",
+        settings: "Einstellungen",
+        chooseImage: "Bild auswählen",
+        addText: "Text hinzufügen (optional)",
+        textPlaceholder: "Zum Beispiel: Hallo!",
+        textSize: "Textgröße",
+        textHint: "Text verwendet SandSkrit-Strichglyphen statt ausgefüllter Blockbuchstaben. Text steht unter dem Bild; ohne Bild wird nur Text gezeichnet.",
+        darkThreshold: "Maximale Helligkeit für dunkle Pixel",
+        minSpotSize: "Mindestgröße dunkler Flecken (Pixel)",
+        drawImageAs: "Bild zeichnen als",
+        hatchedFill: "Schraffierte Füllung",
+        contoursOnly: "Nur Konturen",
+        fillSpacing: "Abstand der Fülllinien (Pixel)",
+        outlineAfterFill: "Kontur nach der Füllung nachzeichnen",
+        detail: "Detailgrad",
+        normal: "Normal",
+        high: "Hoch",
+        veryHigh: "Sehr hoch",
+        extraFine: "Extra fein",
+        ultraFine: "Ultrafein",
+        maximum: "Maximum",
+        maxRadius: "Maximaler Musterradius",
+        downloadSvg: "SVG herunterladen",
+        downloadThr: "THR herunterladen",
+        initialStatus: "Wähle ein Bild, um zu beginnen.",
+        previewSection: "Mustervorschau",
+        previewTitle: "Vorschau",
+        previewCanvas: "Vorschau des durchgehenden Musters",
+        pointsOnlyStatus: "{points} Punkte im durchgehenden Pfad.",
+        pointsTracksStatus: "{points} Punkte · {tracks} Bahnen im durchgehenden Pfad.",
+        connectionRouteError: "Zwischen den Bildlinien konnte keine Verbindungsroute gefunden werden.",
+        invalidRadius: "Gib einen Radius größer als 0 ein.",
+        chooseImageOrText: "Wähle ein Bild oder gib Text ein.",
+        noDarkShapes: "Keine klaren dunklen Formen gefunden. Erhöhe den Helligkeitsschwellenwert oder verringere die Mindestgröße.",
+        unsupportedCharacter: "Das Zeichen „{character}“ wird nicht unterstützt.",
+        tooFewPixels: "Zu wenige dunkle Pixel. Verringere den Dunkelheitsschwellenwert oder wähle ein dunkleres Bild.",
+        invalidImageFile: "Wähle eine gültige Bilddatei aus.",
+        imageOpenError: "Das Bild konnte nicht geöffnet werden.",
+        unexpectedError: "Das Muster konnte nicht erstellt werden: {message}"
+      },
+      fr: {
+        languageLabel: "Langue",
+        title: "Image vers motif SandSkrit",
+        intro: "Choisissez des contours ou un remplissage hachuré. Le tracé commence sur le dessin ; les liaisons suivent si possible le bord des formes sombres au lieu de traverser les zones blanches.",
+        settings: "Paramètres",
+        chooseImage: "Choisir une image",
+        addText: "Ajouter du texte (facultatif)",
+        textPlaceholder: "Par exemple : Bonjour !",
+        textSize: "Taille du texte",
+        textHint: "Le texte utilise les tracés de caractères SandSkrit, et non des lettres pleines. Il est placé sous l’image ; sans image, seul le texte est tracé.",
+        darkThreshold: "Luminosité maximale des pixels sombres",
+        minSpotSize: "Taille minimale des taches sombres (pixels)",
+        drawImageAs: "Tracer l’image en",
+        hatchedFill: "Remplissage hachuré",
+        contoursOnly: "Contours uniquement",
+        fillSpacing: "Espacement des lignes de remplissage (pixels)",
+        outlineAfterFill: "Tracer aussi le contour après le remplissage",
+        detail: "Niveau de détail",
+        normal: "Normal",
+        high: "Élevé",
+        veryHigh: "Très élevé",
+        extraFine: "Très fin",
+        ultraFine: "Ultra-fin",
+        maximum: "Maximum",
+        maxRadius: "Rayon maximal du motif",
+        downloadSvg: "Télécharger le SVG",
+        downloadThr: "Télécharger le THR",
+        initialStatus: "Choisissez une image pour commencer.",
+        previewSection: "Aperçu du motif",
+        previewTitle: "Aperçu",
+        previewCanvas: "Aperçu du tracé continu",
+        pointsOnlyStatus: "{points} points dans le tracé continu.",
+        pointsTracksStatus: "{points} points · {tracks} lignes dans le tracé continu.",
+        connectionRouteError: "Impossible de trouver un chemin de liaison entre les traits de l’image.",
+        invalidRadius: "Saisissez un rayon supérieur à 0.",
+        chooseImageOrText: "Choisissez une image ou saisissez du texte.",
+        noDarkShapes: "Aucune forme sombre nette détectée. Augmentez le seuil de luminosité ou réduisez la taille minimale des taches.",
+        unsupportedCharacter: "Le caractère « {character} » n’est pas pris en charge.",
+        tooFewPixels: "Il n’y a pas assez de pixels sombres. Réduisez le seuil de luminosité ou choisissez une image plus sombre.",
+        invalidImageFile: "Choisissez un fichier image valide.",
+        imageOpenError: "Impossible d’ouvrir l’image.",
+        unexpectedError: "Impossible de générer le motif : {message}"
+      }
+    };
+    const localeNames = { en: "en-US", nl: "nl-NL", de: "de-DE", fr: "fr-FR" };
+    const supportedLanguages = Object.keys(messages);
+
+    function translate(key, values = {}) {
+      const template = messages[languageInput.value][key] || messages.en[key] || key;
+      return template.replace(/\{(\w+)\}/g, (match, name) => values[name] ?? match);
+    }
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat(localeNames[languageInput.value]).format(value);
+    }
+
+    function localizeInterface() {
+      const language = languageInput.value;
+      document.documentElement.lang = localeNames[language];
+      document.title = `SandSkrit - ${translate("title")}`;
+      document.querySelectorAll("[data-i18n]").forEach(element => {
+        element.textContent = translate(element.dataset.i18n);
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
+        element.placeholder = translate(element.dataset.i18nPlaceholder);
+      });
+      document.querySelectorAll("[data-i18n-aria-label]").forEach(element => {
+        element.setAttribute("aria-label", translate(element.dataset.i18nAriaLabel));
+      });
+      textSizeValue.value = `${textSizeInput.value}%`;
+      thresholdValue.value = formatNumber(Number(thresholdInput.value));
+      minPixelsValue.value = formatNumber(Number(minPixelsInput.value));
+      fillSpacingValue.value = formatNumber(Number(fillSpacingInput.value));
+      showStatus(currentStatus.key, currentStatus.values);
+    }
+
+    let currentStatus = { key: "initialStatus", values: {} };
+
+    function showStatus(key, values = {}) {
+      currentStatus = { key, values };
+      const displayValues = { ...values };
+      if (key === "pointsOnlyStatus" || key === "pointsTracksStatus") {
+        displayValues.points = formatNumber(values.points);
+        displayValues.tracks = formatNumber(values.tracks);
+      }
+      status.textContent = translate(key, displayValues);
+    }
+
+    function localizedError(key, values = {}) {
+      const error = new Error(translate(key, values));
+      error.messageKey = key;
+      error.messageValues = values;
+      return error;
+    }
+
+    const savedLanguage = localStorage.getItem("sandskrit-language");
+    if (supportedLanguages.includes(savedLanguage)) languageInput.value = savedLanguage;
+
     const fileInput = document.getElementById("imageFile");
     const textInput = document.getElementById("patternText");
     const textSizeInput = document.getElementById("textSize");
@@ -180,10 +423,6 @@
     let loadedImage = null;
     let points = [];
     let generatedTrackCount = 0;
-
-    function showStatus(message) {
-      status.textContent = message;
-    }
 
     function makeDarkMask(pixels, width, height, threshold, minPixels) {
       const mask = new Uint8Array(width * height);
@@ -415,7 +654,7 @@
         }
       }
       if (parents[goal] === -1) {
-        throw new Error("Er kon geen verbindingsroute tussen de afbeeldingslijnen worden gevonden.");
+        throw localizedError("connectionRouteError");
       }
       const path = [];
       for (let current = goal; current !== start; current = parents[current]) {
@@ -547,11 +786,11 @@
       const resolution = Number(resolutionInput.value);
       const radius = Number(radiusInput.value);
       if (!Number.isFinite(radius) || radius <= 0) {
-        throw new Error("Vul een radius groter dan 0 in.");
+        throw localizedError("invalidRadius");
       }
       const text = textInput.value.trim();
       if (!loadedImage && !text) {
-        throw new Error("Kies een afbeelding of vul tekst in.");
+        throw localizedError("chooseImageOrText");
       }
 
       const sample = document.createElement("canvas");
@@ -618,7 +857,7 @@
       }
 
       if (loadedImage && rawPoints.length < 2 && !text) {
-        throw new Error("Geen duidelijke donkere vormen gevonden. Verhoog de helderheidsdrempel of verlaag de minimale vlekgrootte.");
+        throw localizedError("noDarkShapes");
       }
 
       if (text) {
@@ -629,7 +868,7 @@
           if (character === " ") totalWidth += 0.5;
           else {
             const data = characters[character];
-            if (!data) throw new Error(`Het teken '${character}' wordt niet ondersteund.`);
+            if (!data) throw localizedError("unsupportedCharacter", { character });
             totalWidth += data.width + spacing * 2;
           }
         }
@@ -679,7 +918,7 @@
       }
 
       if (rawPoints.length < 2) {
-        throw new Error("Er zijn te weinig donkere pixels. Verlaag de donkerte-drempel of kies een donkerdere afbeelding.");
+        throw localizedError("tooFewPixels");
       }
 
       const farthest = Math.max(...rawPoints.map(([x, y]) => Math.hypot(x, y)));
@@ -718,16 +957,17 @@
         drawPreview();
         svgButton.disabled = false;
         thrButton.disabled = false;
-        const tracks = generatedTrackCount
-          ? ` · ${generatedTrackCount.toLocaleString("nl-NL")} banen`
-          : "";
-        showStatus(`${points.length.toLocaleString("nl-NL")} punten${tracks} in het doorlopende pad.`);
+        const key = generatedTrackCount ? "pointsTracksStatus" : "pointsOnlyStatus";
+        showStatus(key, {
+          points: points.length,
+          tracks: generatedTrackCount
+        });
       } catch (error) {
         points = [];
         drawPreview();
         svgButton.disabled = true;
         thrButton.disabled = true;
-        showStatus(error.message);
+        showStatus(error.messageKey || "unexpectedError", error.messageValues || { message: error.message });
       }
     }
 
@@ -773,7 +1013,7 @@
       const file = fileInput.files[0];
       if (!file) return;
       if (!file.type.startsWith("image/")) {
-        showStatus("Kies een geldig afbeeldingsbestand.");
+        showStatus("invalidImageFile");
         return;
       }
       const image = new Image();
@@ -781,7 +1021,7 @@
         loadedImage = image;
         updatePattern();
       };
-      image.onerror = () => showStatus("De afbeelding kon niet worden geopend.");
+      image.onerror = () => showStatus("imageOpenError");
       image.src = URL.createObjectURL(file);
     });
 
@@ -811,6 +1051,12 @@
     radiusInput.addEventListener("input", updatePattern);
     svgButton.addEventListener("click", () => download("sandSkrit-pattern.svg", makeSvg(), "image/svg+xml"));
     thrButton.addEventListener("click", () => download("sandSkrit-pattern.thr", makeThr(), "text/plain"));
+    languageInput.addEventListener("change", () => {
+      localStorage.setItem("sandskrit-language", languageInput.value);
+      localizeInterface();
+    });
+
+    localizeInterface();
   </script>
 </body>
 </html>
